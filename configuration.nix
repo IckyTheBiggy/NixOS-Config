@@ -10,6 +10,10 @@
       ./hardware-configuration.nix
     ];
 
+  nixpkgs.config.packageOverrides = pkgs: {
+	nixos = pkgs.nixos-unstable;
+  };
+
   #Allow nn packages
   nixpkgs.config.allowUnfree = true;
 
@@ -17,7 +21,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "bnn"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -45,19 +49,28 @@
     LC_TIME = "en_GB.UTF-8";
   };
 
-  #Services starting here
-  services.xserver.videoDrivers = ["nvidia"];
-  services.flatpak.enable = true;
+  services.xserver.enable = true;
 
-  #enabling ssh so a nn can rat my system
-  services.openssh.enable = true;
+  services.xserver.displayManager.defaultSession = "none+i3";
+  services.xserver.windowManager.i3.enable = true;
 
-  # Configure xserver
+  #Configure xserver
   services.xserver = {
-    enable = true;
     layout = "gb";
     xkbVariant = "";
   };
+
+  #Services starting here
+  services.xserver.videoDrivers = ["nvidia"];
+  services.printing.enable = true;
+
+  #enabling ssh so a nn can rat my system
+  services.openssh.enable = true;
+  
+  #pulse audio being a ass
+  sound.enable = true;
+  hardware.pulseaudio.enable = false;
+  security.rtkit.enable = true;
 
   services.pipewire = {
   enable = true;
@@ -67,26 +80,6 @@
   # If you want to use JACK applications, uncomment this
   #jack.enable = true;
 };
-
-  #pulse audio being a ass
-  hardware.pulseaudio.enable = false;
-  sound.enable = true;
-  security.rtkit.enable = true;
-
-  desktopManager =
-  {
-    xterm.enable = false;
-  };
-
-  displayManager =
-  {
-    defaultSession = "none+i3";
-  };
-
-  windowManager.i3 =
-  {
-    enable = true;
-  };
 
 
   #nvidia driver bullshit
@@ -122,13 +115,6 @@
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
-xdg.portal = {
-  enable = true;
-  extraPortals = with pkgs; [
-    xdg-desktop-portal-gtk
-  ];
-};
-
 
   # bRiTiSh layout
   console.keyMap = "uk";
@@ -140,6 +126,11 @@ xdg.portal = {
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [];
   };
+
+
+  nixpkgs.config.permittedInsecurePackages = [
+	"electron-25.9.0"
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -186,8 +177,8 @@ xdg.portal = {
      pipewire
      wireplumber
      pavucontrol
-     flatpak
      flameshot
+     libsForQt5.spectacle
      i2c-tools
      xdg-desktop-portal
      wget
